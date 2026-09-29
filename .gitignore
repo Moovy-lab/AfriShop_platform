@@ -1,0 +1,66 @@
+# ---------- Secrets ----------
+.env
+.env.*
+!.env.example
+*.bak
+
+# ---------- Données et zones du lakehouse ----------
+data/lakehouse/
+data/quarantine/
+warehouse/*
+!warehouse/.gitkeep
+
+# CSV sources : retire cette ligne si tu veux les versionner
+data/raw/*.csv
+
+# ---------- Airflow ----------
+logs/
+airflow.db
+airflow-webserver.pid
+webserver_config.py
+
+# ---------- dbt ----------
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
+dbt/.user.yml
+
+# ---------- Great Expectations ----------
+gx/uncommitted/
+gx_reports/*
+!gx_reports/.gitkeep
+
+# ---------- Spark ----------
+spark-warehouse/
+metastore_db/
+derby.log
+*.crc
+.ivy2/
+
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+*.egg-info/
+build/
+dist/
+
+# ---------- Tests et qualité de code ----------
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# ---------- Notebooks ----------
+.ipynb_checkpoints/
+
+# ---------- IDE et OS ----------
+.idea/
+.vscode/*
+!.vscode/settings.json
+.DS_Store
+Thumbs.db
