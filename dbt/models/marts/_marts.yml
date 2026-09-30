@@ -12,11 +12,33 @@ models:
               field: customer_id
               config:
                 severity: warn
+      - name: order_date
+        tests:
+          - relationships:
+              to: ref('dim_date')
+              field: date_day
+
   - name: dim_customer
     columns:
       - name: customer_id
         tests: [unique, not_null]
+
   - name: dim_product
     columns:
       - name: product_id
+        tests: [unique, not_null]
+
+  - name: dim_payment_method
+    columns:
+      - name: payment_method
+        tests: [unique, not_null]
+
+  - name: dim_delivery_status
+    columns:
+      - name: delivery_status
+        tests: [unique, not_null]
+
+  - name: dim_date
+    columns:
+      - name: date_day
         tests: [unique, not_null]

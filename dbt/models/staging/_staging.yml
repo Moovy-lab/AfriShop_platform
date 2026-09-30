@@ -39,3 +39,39 @@ models:
     columns:
       - name: product_id
         tests: [unique, not_null]
+  - name: stg_payments
+    columns:
+      - name: payment_id
+        tests: [unique, not_null]
+      - name: order_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_orders')
+              field: order_id
+              config:
+                severity: warn
+      - name: payment_status
+        tests:
+          - accepted_values:
+              values: [PENDING, AUTHORIZED, CAPTURED, FAILED, REFUNDED]
+      - name: payment_method
+        tests:
+          - accepted_values:
+              values: [OM_MOBILE_MONEY, WAVE, MTN_MOMO, CARD, COD, BANK_TRANSFER]
+
+  - name: stg_deliveries
+    columns:
+      - name: delivery_id
+        tests: [unique, not_null]
+      - name: order_id
+        tests:
+          - relationships:
+              to: ref('stg_orders')
+              field: order_id
+              config:
+                severity: warn
+      - name: delivery_status
+        tests:
+          - accepted_values:
+              values: [PREPARING, IN_TRANSIT, OUT_FOR_DELIVERY, DELIVERED, FAILED, RETURNED_TO_WAREHOUSE]
