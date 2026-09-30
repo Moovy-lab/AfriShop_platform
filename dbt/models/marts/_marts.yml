@@ -5,11 +5,18 @@ models:
     columns:
       - name: order_line_id
         tests: [unique, not_null]
-      - name: customer_id
+      - name: customer_key
         tests:
           - relationships:
               to: ref('dim_customer')
-              field: customer_id
+              field: customer_key
+              config:
+                severity: warn
+      - name: product_key
+        tests:
+          - relationships:
+              to: ref('dim_product')
+              field: product_key
               config:
                 severity: warn
       - name: order_date
@@ -20,13 +27,17 @@ models:
 
   - name: dim_customer
     columns:
-      - name: customer_id
+      - name: customer_key
         tests: [unique, not_null]
+      - name: customer_id
+        tests: [not_null]
 
   - name: dim_product
     columns:
-      - name: product_id
+      - name: product_key
         tests: [unique, not_null]
+      - name: product_id
+        tests: [not_null]
 
   - name: dim_payment_method
     columns:
