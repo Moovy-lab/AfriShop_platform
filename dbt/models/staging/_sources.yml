@@ -1,0 +1,12 @@
+version: 2
+
+sources:
+  - name: curated
+    schema: curated
+    tables:
+      - name: orders
+      - name: order_lines
+      - name: customers
+      - name: products
+      - name: payments
+      - name: deliveries

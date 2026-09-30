@@ -1,0 +1,12 @@
+afrishop:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: "{{ env_var('WAREHOUSE_DB_HOST', 'postgres') }}"
+      port: "{{ env_var('WAREHOUSE_DB_PORT', '5433') | as_number }}"
+      user: "{{ env_var('WAREHOUSE_DB_USER') }}"
+      password: "{{ env_var('WAREHOUSE_DB_PASSWORD') }}"
+      dbname: "{{ env_var('WAREHOUSE_DB_NAME') }}"
+      schema: public
+      threads: 4
