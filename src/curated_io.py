@@ -37,9 +37,11 @@ def latest_per_key(df: DataFrame, key: str) -> DataFrame:
     """Keep one deterministic latest row per key."""
     order_col = "updated_at" if "updated_at" in df.columns else key
     window = Window.partitionBy(key).orderBy(F.col(order_col).desc_nulls_last())
-    return df.withColumn("_curated_row_number", F.row_number().over(window)).filter(
-        F.col("_curated_row_number") == 1
-    ).drop("_curated_row_number")
+    return (
+        df.withColumn("_curated_row_number", F.row_number().over(window))
+        .filter(F.col("_curated_row_number") == 1)
+        .drop("_curated_row_number")
+    )
 
 
 def write_delta_merge(

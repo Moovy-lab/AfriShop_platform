@@ -11,9 +11,9 @@ from pyspark.sql import functions as F
 
 def _salt() -> str:
     """Return the configured PII salt or fail explicitly."""
-    salt = os.getenv("AFRISHOP_PII_SALT")
+    salt = os.getenv("PII_HASH_SALT")
     if not salt:
-        raise ValueError("AFRISHOP_PII_SALT must be set and non-empty")
+        raise ValueError("PII_HASH_SALT must be set and non-empty")
     return salt
 
 

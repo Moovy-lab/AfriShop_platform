@@ -52,9 +52,7 @@ def transform(df: DataFrame) -> tuple[DataFrame, DataFrame, int]:
     collision = F.coalesce(F.col("_is_collision"), F.lit(False))
     collision_duplicate = collision & (F.col("_customer_row") > 1)
     valid = df.filter(F.col("_customer_row") == 1)
-    rejected = df.filter(collision_duplicate).withColumn(
-        "reason", F.lit("customer_id_collision")
-    )
+    rejected = df.filter(collision_duplicate).withColumn("reason", F.lit("customer_id_collision"))
     duplicate_count = df.count() - valid.count() - rejected.count()
     valid = valid.drop("_is_collision", "_customer_row")
     rejected = rejected.drop("_is_collision", "_customer_row")
@@ -72,9 +70,14 @@ def run(csv_source: bool = False) -> None:
     write_delta_merge(spark, valid, "customers", "customer_id")
     write_quarantine(rejected, "customers")
     log_event(
-        job="customers", table="customers", event="completed", rows_in=rows_in,
-        rows_valid=rows_valid, rows_quarantined=rows_quarantined,
-        rows_deduplicated=duplicates, duration_seconds=time.monotonic() - started,
+        job="customers",
+        table="customers",
+        event="completed",
+        rows_in=rows_in,
+        rows_valid=rows_valid,
+        rows_quarantined=rows_quarantined,
+        rows_deduplicated=duplicates,
+        duration_seconds=time.monotonic() - started,
     )
 
 

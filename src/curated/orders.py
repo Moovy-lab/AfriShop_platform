@@ -16,9 +16,13 @@ from spark_session import get_spark
 def transform(df: DataFrame) -> tuple[DataFrame, DataFrame, int]:
     """Deduplicate orders and quarantine inconsistent order totals."""
     df = timestamp_columns(df, "order_date", "created_at", "updated_at")
-    df = numeric_columns(df, {name: "decimal(18,2)" for name in (
-        "subtotal_amount", "shipping_amount", "discount_amount", "total_amount"
-    )})
+    df = numeric_columns(
+        df,
+        {
+            name: "decimal(18,2)"
+            for name in ("subtotal_amount", "shipping_amount", "discount_amount", "total_amount")
+        },
+    )
     df, duplicates = deduplicate(df, "order_id")
     df = df.withColumn("order_year_month", F.date_format("order_date", "yyyy-MM"))
     delta = F.abs(
@@ -40,9 +44,14 @@ def run(csv_source: bool = False) -> None:
     write_delta_merge(spark, valid, "orders", "order_id", "order_year_month")
     write_quarantine(rejected, "orders")
     log_event(
-        job="orders", table="orders", event="completed", rows_in=rows_in,
-        rows_valid=rows_valid, rows_quarantined=rows_quarantined,
-        rows_deduplicated=duplicates, duration_seconds=time.monotonic() - started,
+        job="orders",
+        table="orders",
+        event="completed",
+        rows_in=rows_in,
+        rows_valid=rows_valid,
+        rows_quarantined=rows_quarantined,
+        rows_deduplicated=duplicates,
+        duration_seconds=time.monotonic() - started,
     )
 
 

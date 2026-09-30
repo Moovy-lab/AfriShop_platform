@@ -8,8 +8,7 @@ import time
 from pyspark.sql import DataFrame
 from pyspark.sql import functions as F
 
-from curated._common import deduplicate, numeric_columns
-from curated._common import reject_by_reason, timestamp_columns
+from curated._common import deduplicate, numeric_columns, reject_by_reason, timestamp_columns
 from curated_io import log_event, read_source, write_delta_merge, write_quarantine
 from spark_session import get_spark
 
@@ -17,10 +16,15 @@ from spark_session import get_spark
 def transform(df: DataFrame, product_ids: DataFrame) -> tuple[DataFrame, DataFrame, int]:
     """Quarantine orphan products and inconsistent extended line amounts."""
     df = timestamp_columns(df)
-    df = numeric_columns(df, {
-        "quantity": "integer", "unit_price": "decimal(18,2)",
-        "line_discount": "decimal(18,2)", "line_total": "decimal(18,2)",
-    })
+    df = numeric_columns(
+        df,
+        {
+            "quantity": "integer",
+            "unit_price": "decimal(18,2)",
+            "line_discount": "decimal(18,2)",
+            "line_total": "decimal(18,2)",
+        },
+    )
     df, duplicates = deduplicate(df, "order_line_id")
     known = product_ids.select("product_id").dropDuplicates()
     df = df.join(known.withColumn("_known_product", F.lit(True)), "product_id", "left")
@@ -28,9 +32,11 @@ def transform(df: DataFrame, product_ids: DataFrame) -> tuple[DataFrame, DataFra
     expected = F.col("quantity") * F.col("unit_price") - F.col("line_discount")
     mismatch = F.abs(F.col("line_total") - expected) > F.lit(0.05)
     valid, rejected = reject_by_reason(
-        df.drop("_known_product"),
+        df,
         [("unknown_product_id", orphan), ("line_total_mismatch", mismatch)],
     )
+    valid = valid.drop("_known_product")
+    rejected = rejected.drop("_known_product")
     return valid, rejected, duplicates
 
 
@@ -46,9 +52,14 @@ def run(csv_source: bool = False) -> None:
     write_delta_merge(spark, valid, "order_lines", "order_line_id")
     write_quarantine(rejected, "order_lines")
     log_event(
-        job="order_lines", table="order_lines", event="completed", rows_in=rows_in,
-        rows_valid=rows_valid, rows_quarantined=rows_quarantined,
-        rows_deduplicated=duplicates, duration_seconds=time.monotonic() - started,
+        job="order_lines",
+        table="order_lines",
+        event="completed",
+        rows_in=rows_in,
+        rows_valid=rows_valid,
+        rows_quarantined=rows_quarantined,
+        rows_deduplicated=duplicates,
+        duration_seconds=time.monotonic() - started,
     )
 
 

@@ -14,7 +14,7 @@ from curated.order_lines import transform as transform_order_lines
 from curated.orders import transform as transform_orders
 from curated.payments import transform as transform_payments
 from curated.products import transform as transform_products
-from curated_io import latest_per_key, read_source
+from curated_io import data_root, latest_per_key, read_source
 
 
 def test_products_quarantines_zero_price_and_flags_margin(spark):
@@ -56,7 +56,7 @@ def test_order_lines_quarantines_orphan_before_amount_check(spark):
 
 
 def test_customer_collision_keeps_first_and_quarantines_other(spark, monkeypatch):
-    monkeypatch.setenv("AFRISHOP_PII_SALT", "test-salt")
+    monkeypatch.setenv("PII_HASH_SALT", "test-salt")
     frame = spark.createDataFrame(
         [
             ("c1", "email-a", "phone-a", "2024-01-01"),
@@ -98,9 +98,10 @@ def test_payments_keeps_distinct_attempts_and_deduplicates_ids(spark):
 
 def test_latest_per_key_keeps_updated_record(spark):
     frame = spark.createDataFrame(
-        [("k1", "old"), ("k1", "new")], "id string, updated_at string"
+        [("k1", "2025-01-01"), ("k1", "2025-01-02")],
+        "id string, updated_at string",
     ).withColumnRenamed("id", "key")
-    assert latest_per_key(frame, "key").select("updated_at").first()[0] == "new"
+    assert latest_per_key(frame, "key").select("updated_at").first()[0] == "2025-01-02"
 
 
 def test_products_job_is_idempotent(spark, tmp_path, monkeypatch):
@@ -109,9 +110,7 @@ def test_products_job_is_idempotent(spark, tmp_path, monkeypatch):
         "product_id string, unit_cost double, unit_price double",
     )
     monkeypatch.setattr(products_job, "get_spark", lambda app_name: spark)
-    monkeypatch.setattr(
-        products_job, "read_source", lambda session, table, csv_source: frame
-    )
+    monkeypatch.setattr(products_job, "read_source", lambda session, table, csv_source: frame)
     monkeypatch.setattr(curated_io, "data_root", lambda: Path(tmp_path))
 
     products_job.run()
@@ -130,9 +129,20 @@ def test_products_job_is_idempotent(spark, tmp_path, monkeypatch):
 
 
 def test_products_raw_csv_integration_when_available(spark):
-    if not Path("data/raw/products.csv").exists():
+    if not (data_root() / "raw" / "products.csv").exists():
         return
     source = read_source(spark, "products", csv_source=True)
+    valid, rejected = transform_products(source)
+    assert source.count() == 12_000
+    assert rejected.count() == 119
+    assert valid.filter("is_negative_margin").count() == 60
+
+
+def test_products_raw_parquet_integration_when_available(spark):
+    raw_path = data_root() / "lakehouse" / "raw" / "products"
+    if not raw_path.exists():
+        return
+    source = read_source(spark, "products")
     valid, rejected = transform_products(source)
     assert source.count() == 12_000
     assert rejected.count() == 119

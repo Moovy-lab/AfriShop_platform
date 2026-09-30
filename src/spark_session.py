@@ -27,8 +27,7 @@ def get_spark(app_name: str = "afrishop-curated", cluster: bool | None = None) -
         .config("spark.sql.shuffle.partitions", os.getenv("SPARK_SHUFFLE_PARTITIONS", "4"))
     )
     if use_cluster:
-        builder = (
-            builder.config("spark.driver.host", socket.gethostbyname(socket.gethostname()))
-            .config("spark.driver.bindAddress", "0.0.0.0")
-        )
+        builder = builder.config(
+            "spark.driver.host", socket.gethostbyname(socket.gethostname())
+        ).config("spark.driver.bindAddress", "0.0.0.0")
     return builder.getOrCreate()

@@ -30,9 +30,11 @@ def deduplicate(df: DataFrame, key: str) -> tuple[DataFrame, int]:
     stable = F.sha2(F.to_json(F.struct(*[F.col(name) for name in df.columns])), 256)
     window = Window.partitionBy(key).orderBy(order_col, stable.desc())
     before = df.count()
-    result = df.withColumn("_curated_row_number", F.row_number().over(window)).filter(
-        F.col("_curated_row_number") == 1
-    ).drop("_curated_row_number")
+    result = (
+        df.withColumn("_curated_row_number", F.row_number().over(window))
+        .filter(F.col("_curated_row_number") == 1)
+        .drop("_curated_row_number")
+    )
     return result, before - result.count()
 
 

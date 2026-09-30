@@ -18,9 +18,7 @@ def transform(df: DataFrame) -> tuple[DataFrame, DataFrame, int]:
     df = timestamp_columns(df, "shipped_at", "delivered_at")
     df = numeric_columns(df, {"delivery_attempts": "integer", "delivery_cost": "decimal(18,2)"})
     df, duplicates = deduplicate(df, "delivery_id")
-    reason = F.col("delivered_at").isNotNull() & (
-        F.col("delivered_at") < F.col("shipped_at")
-    )
+    reason = F.col("delivered_at").isNotNull() & (F.col("delivered_at") < F.col("shipped_at"))
     valid, rejected = reject_by_reason(df, [("delivered_before_shipped", reason)])
     return valid, rejected, duplicates
 
@@ -36,9 +34,14 @@ def run(csv_source: bool = False) -> None:
     write_delta_merge(spark, valid, "deliveries", "delivery_id")
     write_quarantine(rejected, "deliveries")
     log_event(
-        job="deliveries", table="deliveries", event="completed", rows_in=rows_in,
-        rows_valid=rows_valid, rows_quarantined=rows_quarantined,
-        rows_deduplicated=duplicates, duration_seconds=time.monotonic() - started,
+        job="deliveries",
+        table="deliveries",
+        event="completed",
+        rows_in=rows_in,
+        rows_valid=rows_valid,
+        rows_quarantined=rows_quarantined,
+        rows_deduplicated=duplicates,
+        duration_seconds=time.monotonic() - started,
     )
 
 

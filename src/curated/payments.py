@@ -32,9 +32,14 @@ def run(csv_source: bool = False) -> None:
     write_delta_merge(spark, valid, "payments", "payment_id")
     write_quarantine(rejected, "payments")
     log_event(
-        job="payments", table="payments", event="completed", rows_in=rows_in,
-        rows_valid=rows_valid, rows_quarantined=rows_quarantined,
-        rows_deduplicated=duplicates, duration_seconds=time.monotonic() - started,
+        job="payments",
+        table="payments",
+        event="completed",
+        rows_in=rows_in,
+        rows_valid=rows_valid,
+        rows_quarantined=rows_quarantined,
+        rows_deduplicated=duplicates,
+        duration_seconds=time.monotonic() - started,
     )
 
 
