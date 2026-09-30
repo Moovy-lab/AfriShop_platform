@@ -8,6 +8,7 @@ select
     o.country_code,
     o.currency,
     o.total_amount,
+    o.updated_at,
     t.line_count,
     t.lines_total,
     t.is_total_consistent,

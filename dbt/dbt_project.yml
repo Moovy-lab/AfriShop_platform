@@ -6,7 +6,7 @@ profile: afrishop
 model-paths: ["models"]
 macro-paths: ["macros"]
 snapshot-paths: ["snapshots"]
-test-paths: ["tests"]
+test-paths: ["data_tests"]
 clean-targets: ["target", "dbt_packages"]
 
 models:

@@ -53,3 +53,10 @@ models:
     columns:
       - name: date_day
         tests: [unique, not_null]
+
+  - name: agg_customer_rfm
+    columns:
+      - name: customer_id
+        data_tests: [ not_null ]
+      - name: currency
+        data_tests: [ not_null ]
