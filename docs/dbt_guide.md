@@ -137,6 +137,25 @@ Autres commandes utiles :
 | `dbt test --store-failures` | enregistre les lignes fautives dans des tables |
 | `dbt docs generate` | génère la documentation et le lineage |
 
+### Consulter le lineage (documentation dbt)
+
+dbt génère un site de documentation avec le dictionnaire de données et le graphe de dépendances (lineage) entre sources, staging, intermediate, snapshots et marts.
+
+```bash
+dbt docs generate                                  # 1. génère les fichiers dans dbt/target/
+python3 -m http.server 8085 --directory dbt/target # 2. sert le site depuis votre machine
+```
+
+Ouvrez ensuite http://localhost:8085. Pour afficher le graphe, cliquez sur le **bouton vert en bas à droite** de la page. Arrêtez le serveur avec `Ctrl+C`.
+
+Remarques :
+- Ouvrir `dbt/target/index.html` directement dans le navigateur ne fonctionne pas : la page charge `manifest.json` et `catalog.json`, ce qui demande un petit serveur web.
+- La commande `python3 -m http.server` se lance sur **votre machine**, pas dans le conteneur. Aucun port à ajouter dans `docker-compose.yml`.
+- Si le port 8085 est occupé, changez-le (`8086`, `8090`...) et adaptez l'adresse.
+- `dbt/target/` n'est pas versionné (il est dans le `.gitignore`). Chaque contributeur régénère le site chez lui.
+- La documentation est une photo du projet à un instant donné : relancez `dbt docs generate` après tout ajout ou renommage de modèle.
+- Une capture du graphe est conservée dans `docs/img/dbt_lineage.png` pour le README et la soutenance. À refaire si les modèles changent.
+
 ## 4. Résultats attendus (jeu de données du sujet)
 
 | Contrôle | Résultat |
