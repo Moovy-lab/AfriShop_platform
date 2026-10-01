@@ -11,7 +11,7 @@ warehouse/*
 !warehouse/.gitkeep
 
 # CSV sources : retire cette ligne si tu veux les versionner
-data/raw/*.csv
+# data/raw/*.csv
 
 # ---------- Airflow ----------
 logs/
