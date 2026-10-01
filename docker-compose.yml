@@ -38,7 +38,7 @@ x-airflow-common: &airflow-common
     - ./dbt:/opt/airflow/dbt
     - ./gx:/opt/airflow/gx
     - ./gx_reports:/opt/airflow/gx_reports
-    - ./tests:/opt/airflow/tests
+    - ./data_tests:/opt/airflow/data_tests
     - ./data:/data
     - ./warehouse:/warehouse
   networks: [afrishop_net]
