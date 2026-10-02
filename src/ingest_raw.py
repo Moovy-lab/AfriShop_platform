@@ -10,14 +10,16 @@ from pathlib import Path
 
 import pandas as pd
 import sys
+import os
 sys.stdout.reconfigure(encoding="utf-8")
 sys.stderr.reconfigure(encoding="utf-8")
 
 # --- Configuration ---
-RAW_DIR = Path("data/raw")
-LAKEHOUSE_DIR = Path("data/lakehouse/raw")
-LOGS_DIR = Path("logs")
-INGESTION_DATE = date.today().isoformat()
+DATA_DIR = Path(os.getenv("DATA_DIR", "data"))
+RAW_DIR = DATA_DIR / "raw"
+LAKEHOUSE_DIR = DATA_DIR / "lakehouse" / "raw"
+LOGS_DIR = Path(os.getenv("INGEST_LOG_DIR", "logs"))
+INGESTION_DATE = os.getenv("INGESTION_DATE", date.today().isoformat())
 
 # Liste des sources attendues
 SOURCES = ["orders", "order_lines", "customers",

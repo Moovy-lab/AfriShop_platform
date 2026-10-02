@@ -22,15 +22,37 @@ RUN pip install --no-cache-dir \
 
 # dbt et Great Expectations isolés dans leurs propres environnements
 RUN python -m venv /home/airflow/dbt_venv \
-    && /home/airflow/dbt_venv/bin/pip install --no-cache-dir "dbt-core~=1.8.0" "dbt-postgres~=1.8.0" \
+    && /home/airflow/dbt_venv/bin/pip install \
+         --no-cache-dir \
+         --default-timeout=300 \
+         --retries=10 \
+         "dbt-core~=1.8.0" \
+         "dbt-postgres~=1.8.0" \
     && python -m venv /home/airflow/gx_venv \
-    && /home/airflow/gx_venv/bin/pip install --no-cache-dir \
-         "great-expectations>=1.0,<2" pandas pyarrow "sqlalchemy>=2" psycopg2-binary
+    && /home/airflow/gx_venv/bin/pip install \
+         --no-cache-dir \
+         --default-timeout=300 \
+         --retries=10 \
+         "great-expectations>=1.0,<2" \
+         pandas \
+         pyarrow \
+         "sqlalchemy>=2" \
+         psycopg2-binary
+
 
 # Jars Delta intégrés à l'image (pas de téléchargement au runtime)
 ENV SPARK_HOME=/home/airflow/.local/lib/python3.11/site-packages/pyspark
 ENV PYSPARK_PYTHON=python3
-RUN curl -fsSL -o "${SPARK_HOME}/jars/delta-spark_2.12-${DELTA_VERSION}.jar" \
+
+ARG POSTGRES_JDBC_VERSION=42.7.8
+
+RUN curl -fL --retry 10 --retry-delay 5 --retry-all-errors \
+      -o "${SPARK_HOME}/jars/delta-spark_2.12-${DELTA_VERSION}.jar" \
       "https://repo1.maven.org/maven2/io/delta/delta-spark_2.12/${DELTA_VERSION}/delta-spark_2.12-${DELTA_VERSION}.jar" \
-    && curl -fsSL -o "${SPARK_HOME}/jars/delta-storage-${DELTA_VERSION}.jar" \
-      "https://repo1.maven.org/maven2/io/delta/delta-storage/${DELTA_VERSION}/delta-storage-${DELTA_VERSION}.jar"
+    && curl -fL --retry 10 --retry-delay 5 --retry-all-errors \
+      -o "${SPARK_HOME}/jars/delta-storage-${DELTA_VERSION}.jar" \
+      "https://repo1.maven.org/maven2/io/delta/delta-storage/${DELTA_VERSION}/delta-storage-${DELTA_VERSION}.jar" \
+    && curl -fL --retry 10 --retry-delay 5 --retry-all-errors \
+      -o "${SPARK_HOME}/jars/postgresql-${POSTGRES_JDBC_VERSION}.jar" \
+      "https://jdbc.postgresql.org/download/postgresql-${POSTGRES_JDBC_VERSION}.jar"
+

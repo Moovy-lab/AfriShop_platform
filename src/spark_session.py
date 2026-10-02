@@ -11,12 +11,15 @@ from pyspark.sql import SparkSession
 def get_spark(app_name: str = "afrishop-curated", cluster: bool | None = None) -> SparkSession:
     """Return a Spark session configured for Delta Lake and UTC timestamps."""
     use_cluster = cluster if cluster is not None else bool(os.getenv("SPARK_MASTER_URL"))
-    master = os.getenv("SPARK_MASTER_URL") if use_cluster else "local[*]"
+    master = os.getenv("SPARK_MASTER_URL") if use_cluster else "local[2]"
     if use_cluster and not master:
         raise ValueError("SPARK_MASTER_URL must be set when cluster mode is enabled")
 
     builder = (
         SparkSession.builder.appName(app_name)
+        .config("spark.sql.shuffle.partitions", "8")
+        .config("spark.default.parallelism", "2")
+        .config("spark.databricks.delta.snapshotPartitions", "2")
         .master(master)
         .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
         .config(

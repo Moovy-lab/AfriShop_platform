@@ -110,7 +110,10 @@ services:
   airflow-webserver:
     <<: *airflow-common
     command: webserver
-    ports: ["${AIRFLOW_WEB_PORT:-8080}:8080"]
+    environment:
+      <<: *airflow-env
+      AIRFLOW__WEBSERVER__WORKERS: "1"
+    ports: [ "${AIRFLOW_WEB_PORT:-8080}:8080" ]
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
       interval: 30s
@@ -159,7 +162,7 @@ services:
       spark://spark-master:7077 --webui-port 8081
     environment:
       SPARK_WORKER_CORES: ${SPARK_WORKER_CORES:-2}
-      SPARK_WORKER_MEMORY: ${SPARK_WORKER_MEMORY:-3g}
+      SPARK_WORKER_MEMORY: ${SPARK_WORKER_MEMORY:-1500m}
     ports: ["${SPARK_WORKER_UI_PORT:-8082}:8081"]
     depends_on: [spark-master]
 
