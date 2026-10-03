@@ -106,3 +106,10 @@ L'intégration complète a utilisé Spark 3.5.0 avec Delta Lake 3.1.0, la combin
 - Les journaux donnent les volumes globaux et la durée, mais ne comptent pas actuellement les rejets par motif.
 - L'implémentation attend les chemins ou noms de fichiers indiqués ci-dessus ainsi que les colonnes métier utilisées par chaque transformation.
 - Les six traitements sont des points d'entrée Python indépendants. La planification, les tentatives, les dépendances et les alertes relèvent de la couche d'orchestration.
+
+
+## Validation avec l image cible
+
+Le 3 octobre 2026, l image `afrishop/airflow:2.9.3` a ete construite avec Python 3.11, Spark 3.5.3 et Delta Lake 3.2.1. La commande `pytest -q` dans cette image a termine avec 26 tests reussis et 2 echecs; la couverture mesuree est de 83,57 %, au-dessus du seuil de 60 %. Un echec vient du cas parametre `products` de la nouvelle verification d idempotence; le second concerne le DagBag, qui tente de joindre PostgreSQL absent du run isole. Ces resultats ne constituent pas une execution de reference end-to-end.
+
+`dbt parse --no-partial-parse` a aussi reussi avec dbt Core 1.8.10 et dbt-postgres 1.8.2, sans base. Aucun run complet du DAG, chargement PostgreSQL, test dbt contre les donnees, catalogue dbt ni capture UI n a ete produit pendant cette verification. Les volumes historiques plus haut dans ce document proviennent d un autre environnement et restent a revalider dans un run unique sur l image cible.

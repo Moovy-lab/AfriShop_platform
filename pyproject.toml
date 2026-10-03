@@ -18,6 +18,8 @@ ignore = ["S101"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = ["S105", "S106", "S311"]
+# isort 6 groups this PYTHONPATH-only flat module with DAG imports; Ruff I001 expects a split.
+"dags/afrishop_daily_pipeline.py" = ["I001"]
 
 [tool.mypy]
 python_version = "3.11"

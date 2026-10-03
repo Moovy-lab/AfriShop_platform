@@ -11,9 +11,12 @@ from pyspark.sql import SparkSession
 def get_spark(app_name: str = "afrishop-curated", cluster: bool | None = None) -> SparkSession:
     """Return a Spark session configured for Delta Lake and UTC timestamps."""
     use_cluster = cluster if cluster is not None else bool(os.getenv("SPARK_MASTER_URL"))
-    master = os.getenv("SPARK_MASTER_URL") if use_cluster else "local[2]"
-    if use_cluster and not master:
-        raise ValueError("SPARK_MASTER_URL must be set when cluster mode is enabled")
+    if use_cluster:
+        master = os.getenv("SPARK_MASTER_URL")
+        if not master:
+            raise ValueError("SPARK_MASTER_URL must be set when cluster mode is enabled")
+    else:
+        master = "local[2]"
 
     builder = (
         SparkSession.builder.appName(app_name)
@@ -30,7 +33,8 @@ def get_spark(app_name: str = "afrishop-curated", cluster: bool | None = None) -
         .config("spark.sql.shuffle.partitions", os.getenv("SPARK_SHUFFLE_PARTITIONS", "4"))
     )
     if use_cluster:
-        builder = builder.config(
-            "spark.driver.host", socket.gethostbyname(socket.gethostname())
-        ).config("spark.driver.bindAddress", "0.0.0.0")
+        driver_host = socket.gethostbyname(socket.gethostname())
+        builder = builder.config("spark.driver.host", driver_host).config(
+            "spark.driver.bindAddress", driver_host
+        )
     return builder.getOrCreate()

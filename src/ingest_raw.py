@@ -7,7 +7,7 @@ import logging
 import os
 import sys
 import time
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Any
 
@@ -22,7 +22,7 @@ class JsonFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
         return json.dumps(
             {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "level": record.levelname,
                 "message": record.getMessage(),
                 **getattr(record, "event_data", {}),
@@ -111,7 +111,9 @@ def run(
             for source in sources
         ]
         _write_report(resolved_log_dir, run_date, results)
-        logger.error("Required source files are missing", extra={"event_data": {"missing": missing}})
+        logger.error(
+            "Required source files are missing", extra={"event_data": {"missing": missing}}
+        )
         raise FileNotFoundError(f"Required CSV source files are missing: {', '.join(missing)}")
 
     results = [

@@ -8,12 +8,7 @@ import time
 from pyspark.sql import DataFrame
 from pyspark.sql import functions as F
 
-from curated._common import (
-    deduplicate,
-    numeric_columns,
-    reject_by_reason,
-    timestamp_columns,
-)
+from curated._common import deduplicate, numeric_columns, reject_by_reason, timestamp_columns
 from curated_io import log_event, read_source, write_delta_merge, write_quarantine
 from spark_session import get_spark
 

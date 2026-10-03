@@ -11,6 +11,7 @@ Usage depuis le conteneur Airflow (dossier /opt/airflow, PYTHONPATH=/opt/airflow
     python -m load_to_postgres                    # les 6 tables
     python -m load_to_postgres orders products    # une sélection
 """
+
 from __future__ import annotations
 
 import argparse

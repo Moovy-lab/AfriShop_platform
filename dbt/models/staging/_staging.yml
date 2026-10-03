@@ -4,26 +4,26 @@ models:
   - name: stg_orders
     columns:
       - name: order_id
-        tests: [unique, not_null]
+        data_tests: [unique, not_null]
       - name: customer_id
-        tests: [not_null]
+        data_tests: [not_null]
       - name: order_status
-        tests:
+        data_tests:
           - accepted_values:
               values: [PENDING, CONFIRMED, PROCESSING, SHIPPED, DELIVERED, CANCELLED, RETURNED]
 
   - name: stg_order_lines
     columns:
       - name: order_line_id
-        tests: [unique, not_null]
+        data_tests: [unique, not_null]
       - name: order_id
-        tests:
+        data_tests:
           - not_null
           - relationships:
               to: ref('stg_orders')
               field: order_id
       - name: product_id
-        tests:
+        data_tests:
           - relationships:
               to: ref('stg_products')
               field: product_id
@@ -33,18 +33,18 @@ models:
   - name: stg_customers
     columns:
       - name: customer_id
-        tests: [unique, not_null]
+        data_tests: [unique, not_null]
 
   - name: stg_products
     columns:
       - name: product_id
-        tests: [unique, not_null]
+        data_tests: [unique, not_null]
   - name: stg_payments
     columns:
       - name: payment_id
-        tests: [unique, not_null]
+        data_tests: [unique, not_null]
       - name: order_id
-        tests:
+        data_tests:
           - not_null
           - relationships:
               to: ref('stg_orders')
@@ -52,36 +52,36 @@ models:
               config:
                 severity: warn
       - name: payment_status
-        tests:
+        data_tests:
           - accepted_values:
               values: [PENDING, AUTHORIZED, CAPTURED, FAILED, REFUNDED]
       - name: payment_method
-        tests:
+        data_tests:
           - accepted_values:
               values: [OM_MOBILE_MONEY, WAVE, MTN_MOMO, CARD, COD, BANK_TRANSFER]
 
   - name: stg_deliveries
     columns:
       - name: delivery_id
-        tests: [unique, not_null]
+        data_tests: [unique, not_null]
       - name: order_id
-        tests:
+        data_tests:
           - relationships:
               to: ref('stg_orders')
               field: order_id
               config:
                 severity: warn
       - name: delivery_status
-        tests:
+        data_tests:
           - accepted_values:
               values: [PREPARING, IN_TRANSIT, OUT_FOR_DELIVERY, DELIVERED, FAILED, RETURNED_TO_WAREHOUSE]
 
   - name: stg_sellers
     columns:
       - name: seller_id
-        tests: [unique, not_null]
+        data_tests: [unique, not_null]
 
   - name: stg_refunds
     columns:
       - name: payment_id
-        tests: [unique, not_null]
+        data_tests: [unique, not_null]

@@ -2,19 +2,18 @@
 
 from __future__ import annotations
 
-from pathlib import Path
 import hashlib
+from pathlib import Path
 
 import pytest
-
 from pyspark.sql import functions as F
 
-import curated.products as products_job
 import curated.customers as customers_job
 import curated.deliveries as deliveries_job
 import curated.order_lines as order_lines_job
 import curated.orders as orders_job
 import curated.payments as payments_job
+import curated.products as products_job
 import curated_io
 from curated.customers import transform as transform_customers
 from curated.deliveries import transform as transform_deliveries

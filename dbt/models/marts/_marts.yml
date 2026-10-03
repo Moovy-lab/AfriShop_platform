@@ -4,23 +4,23 @@ models:
   - name: fact_order_line
     columns:
       - name: order_line_id
-        tests: [unique, not_null]
+        data_tests: [unique, not_null]
       - name: customer_key
-        tests:
+        data_tests:
           - relationships:
               to: ref('dim_customer')
               field: customer_key
               config:
                 severity: warn
       - name: product_key
-        tests:
+        data_tests:
           - relationships:
               to: ref('dim_product')
               field: product_key
               config:
                 severity: warn
       - name: order_date
-        tests:
+        data_tests:
           - relationships:
               to: ref('dim_date')
               field: date_day
@@ -28,35 +28,35 @@ models:
   - name: dim_customer
     columns:
       - name: customer_key
-        tests: [unique, not_null]
+        data_tests: [unique, not_null]
       - name: customer_id
-        tests: [not_null]
+        data_tests: [not_null]
 
   - name: dim_product
     columns:
       - name: product_key
-        tests: [unique, not_null]
+        data_tests: [unique, not_null]
       - name: product_id
-        tests: [not_null]
+        data_tests: [not_null]
 
   - name: dim_payment_method
     columns:
       - name: payment_method
-        tests: [unique, not_null]
+        data_tests: [unique, not_null]
 
   - name: dim_delivery_status
     columns:
       - name: delivery_status
-        tests: [unique, not_null]
+        data_tests: [unique, not_null]
 
   - name: dim_date
     columns:
       - name: date_day
-        tests: [unique, not_null]
+        data_tests: [unique, not_null]
 
   - name: agg_customer_rfm
     columns:
       - name: customer_id
-        data_tests: [ not_null ]
+        data_data_tests: [ not_null ]
       - name: currency
-        data_tests: [ not_null ]
+        data_data_tests: [ not_null ]

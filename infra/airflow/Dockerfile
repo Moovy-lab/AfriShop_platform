@@ -57,3 +57,4 @@ RUN curl -fL --retry 10 --retry-delay 5 --retry-all-errors \
       -o "${SPARK_HOME}/jars/postgresql-${POSTGRES_JDBC_VERSION}.jar" \
       "https://jdbc.postgresql.org/download/postgresql-${POSTGRES_JDBC_VERSION}.jar"
 
+RUN pip install --no-cache-dir "pandas-stubs>=2.1,<3" "pre-commit>=3.7,<5"

@@ -17,9 +17,12 @@ def upsert(spark: SparkSession, df: DataFrame, table: str, key: str) -> None:
         df.write.format("delta").save(path)
         return
     (
-        DeltaTable.forPath(spark, path).alias("t")
+        DeltaTable.forPath(spark, path)
+        .alias("t")
         .merge(df.alias("s"), f"t.{key} = s.{key}")
-        .whenMatchedUpdateAll(condition="s.updated_at >= t.updated_at")  # ignore les données plus anciennes
+        .whenMatchedUpdateAll(
+            condition="s.updated_at >= t.updated_at"
+        )  # ignore les données plus anciennes
         .whenNotMatchedInsertAll()
         .execute()
     )
