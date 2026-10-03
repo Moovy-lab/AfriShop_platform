@@ -36,7 +36,10 @@ with DAG(
         """,
     )
 
-
+    load_postgres = BashOperator(
+        task_id="load_postgres",
+        bash_command="python src/load_to_postgres.py",
+    )
 
 
 
@@ -49,4 +52,4 @@ with DAG(
         task_id="dbt_test",
         bash_command="cd dbt && dbt test",
     )
-    ingest_raw >> curated >> dbt_run >> dbt_test
+    ingest_raw >> curated >> load_postgres >> dbt_run >> dbt_test
