@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -25,6 +26,14 @@ def read_source(spark: SparkSession, table: str, csv_source: bool = False) -> Da
     parquet_path = data_root() / "lakehouse" / "raw" / table
     csv_path = data_root() / "raw" / f"{table}.csv"
     if not csv_source and parquet_path.exists():
+        partitions = [
+            path
+            for path in parquet_path.glob("ingestion_date=*")
+            if path.is_dir() and re.fullmatch(r"ingestion_date=\d{4}-\d{2}-\d{2}", path.name)
+        ]
+        if partitions:
+            latest_partition = max(partitions, key=lambda path: path.name)
+            return spark.read.parquet(str(latest_partition))
         return spark.read.parquet(str(parquet_path))
     if csv_path.exists():
         return spark.read.option("header", True).option("inferSchema", False).csv(str(csv_path))

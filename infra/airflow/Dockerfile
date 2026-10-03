@@ -18,7 +18,8 @@ RUN pip install --no-cache-dir \
       apache-airflow-providers-postgres \
       "pyspark==${PYSPARK_VERSION}" \
       "delta-spark==${DELTA_VERSION}" \
-      "pandas>=2.1,<3" pyarrow python-json-logger pytest pytest-cov
+      "pandas>=2.1,<3" pyarrow python-json-logger pytest pytest-cov \
+      "black>=24,<26" "isort>=5,<7" "ruff>=0.6,<1" "mypy>=1.10,<2"
 
 # dbt et Great Expectations isolés dans leurs propres environnements
 RUN python -m venv /home/airflow/dbt_venv \

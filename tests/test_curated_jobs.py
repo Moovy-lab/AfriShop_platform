@@ -3,10 +3,18 @@
 from __future__ import annotations
 
 from pathlib import Path
+import hashlib
+
+import pytest
 
 from pyspark.sql import functions as F
 
 import curated.products as products_job
+import curated.customers as customers_job
+import curated.deliveries as deliveries_job
+import curated.order_lines as order_lines_job
+import curated.orders as orders_job
+import curated.payments as payments_job
 import curated_io
 from curated.customers import transform as transform_customers
 from curated.deliveries import transform as transform_deliveries
@@ -128,9 +136,82 @@ def test_products_job_is_idempotent(spark, tmp_path, monkeypatch):
     assert second_checksum == first_checksum
 
 
+@pytest.mark.integration
+@pytest.mark.parametrize(
+    ("job", "table", "schema", "rows"),
+    [
+        (
+            products_job,
+            "products",
+            "product_id string, unit_cost double, unit_price double",
+            [("p1", 3.0, 5.0)],
+        ),
+        (
+            customers_job,
+            "customers",
+            "customer_id string, email_hash string, phone_hash string, registration_date string",
+            [("c1", "email", "phone", "2025-01-01")],
+        ),
+        (
+            orders_job,
+            "orders",
+            "order_id string, order_date string, updated_at string, subtotal_amount double, "
+            "shipping_amount double, discount_amount double, total_amount double",
+            [("o1", "2025-01-01", "2025-01-01", 10.0, 0.0, 0.0, 10.0)],
+        ),
+        (
+            order_lines_job,
+            "order_lines",
+            "order_line_id string, product_id string, quantity string, unit_price string, "
+            "line_discount string, line_total string",
+            [("l1", "p1", "2", "5.00", "0.00", "10.00")],
+        ),
+        (
+            payments_job,
+            "payments",
+            "payment_id string, payment_status string, payment_date string",
+            [("pay1", "CAPTURED", "2025-01-01")],
+        ),
+        (
+            deliveries_job,
+            "deliveries",
+            "delivery_id string, shipped_at string, delivered_at string",
+            [("d1", "2025-01-01", "2025-01-02")],
+        ),
+    ],
+    ids=["products", "customers", "orders", "order_lines", "payments", "deliveries"],
+)
+def test_curated_jobs_are_idempotent(spark, tmp_path, monkeypatch, job, table, schema, rows):
+    frame = spark.createDataFrame(rows, schema)
+    product_frame = spark.createDataFrame([("p1",)], "product_id string")
+    monkeypatch.setattr(job, "get_spark", lambda app_name: spark)
+    monkeypatch.setattr(
+        job,
+        "read_source",
+        lambda session, source, csv_source=False: product_frame if source == "products" else frame,
+    )
+    monkeypatch.setattr(curated_io, "data_root", lambda: Path(tmp_path))
+    monkeypatch.setenv("PII_HASH_SALT", "test-salt")
+
+    job.run()
+    target_path = str(tmp_path / "lakehouse/curated" / table)
+    first = spark.read.format("delta").load(target_path)
+    first_rows = first.orderBy(*sorted(first.columns)).toJSON().collect()
+    first_fingerprint = hashlib.sha256("".join(first_rows).encode()).hexdigest()
+
+    job.run()
+    second = spark.read.format("delta").load(target_path)
+    second_rows = second.orderBy(*sorted(second.columns)).toJSON().collect()
+    second_fingerprint = hashlib.sha256("".join(second_rows).encode()).hexdigest()
+
+    assert second.count() == first.count() == 1
+    assert second_fingerprint == first_fingerprint
+
+
+@pytest.mark.integration
 def test_products_raw_csv_integration_when_available(spark):
     if not (data_root() / "raw" / "products.csv").exists():
-        return
+        pytest.skip("Synthetic products CSV is not available")
     source = read_source(spark, "products", csv_source=True)
     valid, rejected = transform_products(source)
     assert source.count() == 12_000
@@ -138,10 +219,11 @@ def test_products_raw_csv_integration_when_available(spark):
     assert valid.filter("is_negative_margin").count() == 60
 
 
+@pytest.mark.integration
 def test_products_raw_parquet_integration_when_available(spark):
     raw_path = data_root() / "lakehouse" / "raw" / "products"
     if not raw_path.exists():
-        return
+        pytest.skip("Ingested products Parquet data is not available")
     source = read_source(spark, "products")
     valid, rejected = transform_products(source)
     assert source.count() == 12_000

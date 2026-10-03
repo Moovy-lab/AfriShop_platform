@@ -35,10 +35,11 @@ x-airflow-common: &airflow-common
     - ./dags:/opt/airflow/dags
     - ./logs:/opt/airflow/logs
     - ./src:/opt/airflow/src
+    - ./pyproject.toml:/opt/airflow/pyproject.toml:ro
     - ./dbt:/opt/airflow/dbt
     - ./gx:/opt/airflow/gx
     - ./gx_reports:/opt/airflow/gx_reports
-    - ./data_tests:/opt/airflow/data_tests
+    - ./tests:/opt/airflow/tests
     - ./data:/data
     - ./warehouse:/warehouse
   networks: [afrishop_net]

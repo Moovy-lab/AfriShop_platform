@@ -108,7 +108,7 @@ Le projet s'exécute dans les conteneurs. Les dépendances Python de la pile son
    docker compose ps
    ```
 
-5. Ouvrir Airflow à l'adresse [http://localhost:8080](http://localhost:8080), selon le port défini par `AIRFLOW_WEB_PORT`. Les identifiants proviennent de `.env` (`AIRFLOW_ADMIN_USER` et `AIRFLOW_ADMIN_PASSWORD`). Le DAG est créé en pause par défaut : le désactiver dans l'interface avant de l'exécuter.
+5. Ouvrir Airflow a `http://localhost:8080`, avec les identifiants definis dans `.env`. Le DAG est cree en pause : il faut l'activer dans l'interface avant de le lancer.
 
 Pour démarrer aussi MinIO, qui est optionnel et n'est pas utilisé par le flux de données actuel :
 
@@ -160,7 +160,7 @@ data/raw/payments.csv
 data/raw/deliveries.csv
 ```
 
-Les fichiers présents sont écrits en Parquet dans `data/lakehouse/raw/<source>/ingestion_date=<date>`. Le script ajoute `_ingested_at` et `_source_file`, et produit des journaux texte et JSON dans `logs/`. Une source absente est actuellement marquée `skipped` plutôt que de faire échouer l'ingestion.
+Les six CSV sont obligatoires. Ils sont ecrits en Parquet dans `data/lakehouse/raw/<source>/ingestion_date=<date>`. Le script ajoute `_ingested_at` et `_source_file`, remplace la partition lors du rejeu de la meme date et produit un rapport JSON dans `logs/`. Toute source absente fait echouer l ingestion.
 
 ### Curated et quarantaine
 
@@ -200,11 +200,11 @@ make test
 Elle exécute pytest dans `airflow-worker`. Pour lancer les tests localement, installer les dépendances et rendre `src` importable :
 
 ```bash
-python -m pip install -r requirements.txt pandas pyarrow
+python -m pip install -r requirements-dev.txt
 PYTHONPATH=src python -m pytest -q tests/test_curated_jobs.py tests/test_pii.py
 ```
 
-> Le service `airflow-worker` ne monte pas actuellement le dossier `tests/` dans `docker-compose.yml`. Si `make test` signale que `/opt/airflow/tests` est introuvable, utiliser la commande locale ci-dessus ou monter le dossier des tests dans le service.
+> Le service `airflow-worker` monte `tests/` dans `/opt/airflow/tests`; `make test` lance les tests et affiche la couverture.
 
 Pour générer le site et le graphe de dépendances dbt :
 
@@ -224,7 +224,10 @@ Ouvrir ensuite [http://localhost:8085](http://localhost:8085). Le serveur HTTP e
 | `make up-minio` | Démarre la pile avec le profil MinIO. |
 | `make seed` | Déclenche le DAG AfriShop. |
 | `make logs` | Suit les journaux Compose. |
-| `make test` | Lance pytest dans `airflow-worker` (voir la note sur le montage de `tests/`). |
+| `make test` | Lance pytest dans `airflow-worker` et affiche la couverture avec un seuil de 60 %. |
+| `make lint` | Lance Black, isort, Ruff et mypy dans le conteneur. |
+| `make fmt` | Formate le code Python dans le conteneur. |
+| `make ci` | Enchaine lint, tests et `dbt parse`. |
 | `make docs` | Génère la documentation dbt. |
 | `make down` | Arrête et supprime les conteneurs, sans supprimer les volumes. |
 | `make clean` | Supprime les conteneurs **et les volumes Compose**. |
@@ -267,11 +270,24 @@ La configuration dbt utilise les variables `WAREHOUSE_DB_HOST`, `WAREHOUSE_DB_PO
 - Spark est configuré en mode local par le DAG.
 - La documentation dbt indique que les données PostgreSQL utilisées pour certains résultats ont été chargées manuellement depuis les CSV. Les volumes rapportés dans la documentation curated et dbt peuvent correspondre à des états de données différents ; ils ne doivent pas être interprétés comme une réconciliation d'un même run end-to-end.
 - Aucun tableau de bord BI n'est inclus.
+- Les sources Raw absentes font echouer l ingestion; les six CSV synthetiques doivent etre presents avant le run.
+- Les captures Airflow et lineage dbt restent a fournir apres un run de reference.
+- Le guide DOCX de presentation mentionne dans d anciennes versions du README n est pas present dans cette copie.
 
 ## Documentation complémentaire
 
 - [Guide dbt](docs/dbt_guide.md) — modèles, snapshots, tests et lignage.
 - [Pipeline Curated](docs/curated-pipeline.md) — transformations Spark, qualité et quarantaine.
-- [Rapport technique d'évaluation](docs/Rapport_technique_evaluation_AfriShop.docx).
-- [Guide de présentation d'une heure](docs/Guide_presentation_AfriShop_1h.docx).
-- [Sujet de projet](<PROJET 2  — Plateforme de centralisation et de traitement analytique des données e-commerce panafricain.docx>).
+- Le sujet de projet DOCX est a la racine du depot : [Sujet de projet](PROJET%202%20%20%E2%80%94%20Plateforme%20de%20centralisation%20et%20de%20traitement%20analytique%20des%20donn%C3%A9es%20e-commerce%20panafricain.docx).
+
+
+
+## Exploitation et livrables
+
+- [Architecture](docs/architecture.md)
+- [Runbook](docs/runbook.md)
+- [Dictionnaire de donnees](docs/data_dictionary.md)
+- [Pipeline Curated](docs/curated-pipeline.md)
+- [Guide dbt](docs/dbt_guide.md)
+- [Changelog](CHANGELOG.md)
+- [Captures Airflow et lineage dbt a fournir](docs/img/README.md)
