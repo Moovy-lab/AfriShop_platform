@@ -1,0 +1,1 @@
+"""Curated table jobs."""
